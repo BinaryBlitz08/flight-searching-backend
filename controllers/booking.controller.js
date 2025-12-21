@@ -3,6 +3,7 @@ import Flight from "../models/Flight.js";
 import User from "../models/User.js";
 import BookingAttempt from "../models/BookingAttempt.js";
 import generatePNR from "../utils/pnrGenerator.js";
+import generateTicket from "../utils/pdfGenerator.js"; // import PDF generator
 
 export const bookFlight = async (req, res) => {
   try {
@@ -13,7 +14,6 @@ export const bookFlight = async (req, res) => {
     if (!flight) return res.status(404).json({ message: "Flight not found" });
 
     let finalPrice = flight.basePrice;
-
     const attempt = await BookingAttempt.findOne({ userId, flightId });
     if (attempt && attempt.attemptCount >= 3) {
       finalPrice = Math.round(flight.basePrice * 1.1);
@@ -28,13 +28,16 @@ export const bookFlight = async (req, res) => {
     await user.save();
 
     const pnr = generatePNR();
-
     const booking = await Booking.create({
       userId,
       flightId,
       amountPaid: finalPrice,
       pnr
     });
+
+    const pdfPath = await generateTicket(booking, flight, user);
+    booking.ticketPdfUrl = pdfPath;
+    await booking.save();
 
     res.status(201).json({
       message: "Booking successful",
