@@ -1,40 +1,109 @@
-const PDFDocument = require("pdfkit");
-const fs = require("fs");
-const path = require("path");
+// utils/pdfGenerator.js
+
+import PDFDocument from "pdfkit";
+import fs from "fs";
+import path from "path";
+
+// Make sure this folder exists, or create it
+const TICKETS_DIR = path.join(process.cwd(), "tickets");
+
+// Create tickets folder if not exists
+if (!fs.existsSync(TICKETS_DIR)) {
+  fs.mkdirSync(TICKETS_DIR);
+}
 
 const generateTicket = async (booking, flight, user) => {
   return new Promise((resolve, reject) => {
     try {
-      const doc = new PDFDocument();
-
-      const dir = path.join(__dirname, "../tickets");
-      if (!fs.existsSync(dir)) fs.mkdirSync(dir);
-
+      // Create unique filename using PNR
       const fileName = `${booking.pnr}.pdf`;
-      const filePath = path.join(dir, fileName);
+      const filePath = path.join(TICKETS_DIR, fileName);
 
-      doc.pipe(fs.createWriteStream(filePath));
+      // Create PDF document
+      const doc = new PDFDocument({
+        size: "A4",
+        margin: 50,
+      });
 
-      doc.fontSize(20).text("Flight Ticket", { align: "center" });
-      doc.moveDown();
+      const stream = fs.createWriteStream(filePath);
+      doc.pipe(stream);
 
-      doc.fontSize(14).text(`Passenger: ${user.name}`);
-      doc.text(`Airline: ${flight.airline}`);
-      doc.text(`Flight Number: ${flight.flightNumber}`);
-      doc.text(`Route: ${flight.departurePlace} → ${flight.arrivalPlace}`);
-      doc.text(`Departure: ${flight.departureTime}`);
-      doc.text(`Arrival: ${flight.arrivalTime}`);
-      doc.text(`Price Paid: ₹${booking.amountPaid}`);
-      doc.text(`Booking Date: ${booking.bookingDate}`);
-      doc.text(`PNR: ${booking.pnr}`);
+      // === Header ===
+      doc.fontSize(28).font("Helvetica-Bold").text("FLIGHT TICKET", { align: "center" });
+      doc.moveDown(0.5);
+      doc.fontSize(16).font("Helvetica").text("Your journey awaits!", { align: "center" });
+      doc.moveDown(2);
 
+      // === Ticket Box ===
+      doc.rect(50, doc.y, 495, 300).stroke();
+
+      // Passenger Name
+      doc.fontSize(18).font("Helvetica-Bold").text("Passenger Name:");
+      doc.fontSize(16).font("Helvetica").text(user.name || user.email, { indent: 20 });
+      doc.moveDown(1);
+
+      // PNR
+      doc.fontSize(18).font("Helvetica-Bold").text("PNR:");
+      doc.fontSize(20).font("Helvetica-Bold").fillColor("#0066cc").text(booking.pnr, { indent: 20 });
+      doc.fillColor("black");
+      doc.moveDown(1);
+
+      // Flight Details
+      doc.fontSize(16).font("Helvetica-Bold").text("Flight Details:");
+      doc.fontSize(14).font("Helvetica").text(`${flight.airline} - ${flight.flightNumber}`, { indent: 20 });
+      doc.moveDown(0.5);
+
+      // Route
+      doc.fontSize(16).text(`${flight.departurePlace} → ${flight.arrivalPlace}`, { indent: 20 });
+      doc.moveDown(1);
+
+      // Date & Time
+      const depDate = new Date(flight.departureTime).toLocaleDateString("en-IN", {
+        day: "2-digit",
+        month: "long",
+        year: "numeric",
+      });
+      const depTime = new Date(flight.departureTime).toLocaleTimeString("en-IN", {
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+
+      doc.fontSize(14).text(`Departure: ${depDate} at ${depTime}`, { indent: 20 });
+      doc.moveDown(1.5);
+
+      // Price
+      doc.fontSize(18).font("Helvetica-Bold").text(`Amount Paid: ₹${booking.amountPaid}`);
+      if (booking.amountPaid > flight.basePrice) {
+        doc.fontSize(12).fillColor("red").text(" (Surge Price Applied +10%)", { indent: 20 });
+        doc.fillColor("black");
+      }
+      doc.moveDown(2);
+
+      // Booking Date
+      const bookingDate = new Date(booking.bookingDate || booking.createdAt).toLocaleString("en-IN");
+      doc.fontSize(12).text(`Booked on: ${bookingDate}`);
+
+      // Footer
+      doc.moveDown(4);
+      doc.fontSize(12).text("Thank you for choosing us! Have a safe flight ✈️", { align: "center" });
+
+      // Finalize PDF
       doc.end();
 
-      resolve(filePath);
-    } catch (err) {
-      reject(err);
+      stream.on("finish", () => {
+        console.log(`PDF generated: ${fileName}`);
+        // Return the public URL path
+        resolve(`/tickets/${fileName}`);
+      });
+
+      stream.on("error", (err) => {
+        console.error("PDF write error:", err);
+        reject(err);
+      });
+    } catch (error) {
+      reject(error);
     }
   });
 };
 
-module.exports = generateTicket;
+export default generateTicket;

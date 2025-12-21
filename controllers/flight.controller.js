@@ -1,22 +1,17 @@
-const { searchFlights: searchFlightsService } =
-  require("../services/flight.service");
+// Example: GET /api/flights/search?from=Delhi&to=Mumbai&date=2025-01-10
+const { searchFlights } = require("../services/flight.service");
 
 exports.searchFlights = async (req, res) => {
   try {
-    const { from, to } = req.query;
+    const { from, to, date } = req.query;
 
-    if (!from || !to) {
-      return res.status(400).json({ error: "from and to are required" });
-    }
+    const flights = await searchFlights(from, to, date);
 
-    const flights = await searchFlightsService(from, to);
-
-    return res.status(200).json({
+    res.json({
       count: flights.length,
-      flights
+      flights,
     });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Failed to fetch flights" });
+    res.status(400).json({ error: error.message });
   }
 };
