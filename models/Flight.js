@@ -8,7 +8,6 @@ const flightSchema = new mongoose.Schema({
   departureTime: Date,
   arrivalTime: Date,
   basePrice: Number,
-  bookingAttempt: { type: Number, default: 0 }
 });
 
 module.exports = mongoose.model("Flight", flightSchema);

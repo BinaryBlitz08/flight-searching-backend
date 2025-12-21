@@ -1,7 +1,10 @@
 const Flight = require("../models/Flight");
 
 const seedFlights = async () => {
+    console.log("Seeding flights...");
+
   const count = await Flight.countDocuments();
+    console.log("Existing flight count:", count);
   if (count > 0) {
     console.log("Flights already seeded");
     return;
