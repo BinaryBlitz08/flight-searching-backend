@@ -48,3 +48,20 @@ export const bookFlight = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+export const getBookingHistory = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    // Fetch bookings for this user
+    const bookings = await Booking.find({ userId })
+      .populate("flightId", "flightNumber airline departurePlace arrivalPlace departureTime arrivalTime basePrice") // get flight details
+      .sort({ bookingDate: -1 }); // newest first
+
+    res.json({
+      message: "Booking history fetched successfully",
+      bookings
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
