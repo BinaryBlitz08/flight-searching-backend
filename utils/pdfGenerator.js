@@ -1,10 +1,7 @@
-// utils/pdfGenerator.js
-
 import PDFDocument from "pdfkit";
 import fs from "fs";
 import path from "path";
 
-// Make sure this folder exists, or create it
 const TICKETS_DIR = path.join(process.cwd(), "tickets");
 
 // Create tickets folder if not exists
@@ -28,13 +25,11 @@ const generateTicket = async (booking, flight, user) => {
       const stream = fs.createWriteStream(filePath);
       doc.pipe(stream);
 
-      // === Header ===
       doc.fontSize(28).font("Helvetica-Bold").text("FLIGHT TICKET", { align: "center" });
       doc.moveDown(0.5);
       doc.fontSize(16).font("Helvetica").text("Your journey awaits!", { align: "center" });
       doc.moveDown(2);
 
-      // === Ticket Box ===
       doc.rect(50, doc.y, 495, 300).stroke();
 
       // Passenger Name

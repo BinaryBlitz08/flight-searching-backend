@@ -1,14 +1,10 @@
-// services/flight.service.js
 
 const Flight = require("../models/Flight");
 
-/**
- * Seeds the database with sample flight data
- * Runs only if no flights exist yet
- */
+
 const seedFlights = async () => {
   console.log("Seeding flights...");
-await Flight.deleteMany({});
+
   const count = await Flight.countDocuments();
   console.log(`Existing flight count: ${count}`);
 
@@ -271,7 +267,7 @@ await Flight.deleteMany({});
   ];
 
   await Flight.insertMany(flights);
-  console.log("Flights seeded successfully! 🚀");
+  console.log("Flights seeded successfully! ");
 };
 
 /**
@@ -286,7 +282,6 @@ const searchFlights = async (from, to, date) => {
     throw new Error("from, to, and date are required");
   }
 
-  // Convert input date string to Date object and set time range for full day
   const searchDate = new Date(date);
   const startOfDay = new Date(searchDate.setHours(0, 0, 0, 0));
   const endOfDay = new Date(searchDate.setHours(23, 59, 59, 999));

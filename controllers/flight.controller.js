@@ -1,4 +1,3 @@
-// Example: GET /api/flights/search?from=Delhi&to=Mumbai&date=2025-01-10
 const { searchFlights } = require("../services/flight.service");
 
 exports.searchFlights = async (req, res) => {

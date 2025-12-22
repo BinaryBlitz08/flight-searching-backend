@@ -6,7 +6,7 @@ import User from "../models/User.js";
 import BookingAttempt from "../models/BookingAttempt.js";
 import generatePNR from "../utils/pnrGenerator.js";
 import generateTicket from "../utils/pdfGenerator.js";
-import { calculatePrice } from "../services/pricing.service.js"; // Import the function
+import { calculatePrice } from "../services/pricing.service.js"; 
 
 export const bookFlight = async (req, res) => {
   try {
