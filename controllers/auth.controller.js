@@ -6,7 +6,6 @@ exports.register = async (req, res) => {
   try {
     const { name, email, password } = req.body;
 
-    // Check if user already exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(400).json({ error: "Email already registered" });
@@ -18,13 +17,11 @@ exports.register = async (req, res) => {
       name,
       email,
       password: hashedPassword,
-      wallet: 50000  // ← ADD DEFAULT WALLET
+      wallet: 50000 
     });
 
-    // Generate token
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
 
-    // Return token and user data (including wallet)
     res.status(201).json({
       message: "User registered successfully",
       token,
